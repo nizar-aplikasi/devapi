@@ -1,0 +1,18 @@
+# Binaries
+/app
+*.exe
+*.out
+*.dll
+
+# IDE/editor
+.vscode/
+.idea/
+*.swp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Env/Secrets
+.env
+*.env

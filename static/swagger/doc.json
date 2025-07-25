@@ -1,0 +1,284 @@
+{
+    "swagger": "2.0",
+    "info": {
+      "title": "API Developer (BE)",
+      "description": "This is an API for DevAPI",
+      "contact": {
+        "name": "Nizar Developer",
+        "url": "https://nizar.id/",
+        "email": "nizar.aplikasi@gmail.com"
+      },
+      "version": "1.0"
+    },
+    "host": "",
+    "basePath": "/api/v1",
+    "schemes": [],
+    "paths": {
+      "/auth/signin": {
+        "post": {
+          "description": "Signin with username and password",
+          "consumes": ["application/json"],
+          "produces": ["application/json"],
+          "tags": ["auth"],
+          "summary": "Signin",
+          "parameters": [
+            {
+              "description": "dto",
+              "name": "dto",
+              "in": "body",
+              "required": true,
+              "schema": {
+                "$ref": "#/definitions/dtos.UserLoginDto"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "schema": {
+                "$ref": "#/definitions/dtos.ApiResponse"
+              }
+            }
+          }
+        }
+      },
+      "/auth/refresh": {
+        "post": {
+          "security": [{ "ApiKeyAuth": [] }],
+          "description": "Refresh token",
+          "consumes": ["application/json"],
+          "produces": ["application/json"],
+          "tags": ["auth"],
+          "summary": "Refresh",
+          "parameters": [
+            {
+              "description": "dto",
+              "name": "dto",
+              "in": "body",
+              "required": true,
+              "schema": {
+                "$ref": "#/definitions/dtos.RefreshTokenDto"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "schema": {
+                "$ref": "#/definitions/dtos.ApiResponse"
+              }
+            }
+          }
+        }
+      },
+      "/user": {
+        "post": {
+          "security": [{ "ApiKeyAuth": [] }],
+          "consumes": ["application/json"],
+          "produces": ["application/json"],
+          "tags": ["user"],
+          "summary": "Create User",
+          "parameters": [
+            {
+              "description": "dto",
+              "name": "dto",
+              "in": "body",
+              "required": true,
+              "schema": {
+                "$ref": "#/definitions/dtos.AddUserDto"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "schema": {
+                "$ref": "#/definitions/dtos.ApiResponse"
+              }
+            }
+          }
+        }
+      },
+      "/user/{id}": {
+        "delete": {
+          "security": [{ "ApiKeyAuth": [] }],
+          "consumes": ["application/json"],
+          "produces": ["application/json"],
+          "tags": ["user"],
+          "summary": "Deactive User",
+          "parameters": [
+            {
+              "type": "string",
+              "description": "dto",
+              "name": "id",
+              "in": "path",
+              "required": true
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "schema": {
+                "$ref": "#/definitions/dtos.ApiResponse"
+              }
+            }
+          }
+        }
+      },
+      "/user/change-password": {
+        "post": {
+          "security": [{ "ApiKeyAuth": [] }],
+          "description": "Change password",
+          "consumes": ["application/json"],
+          "produces": ["application/json"],
+          "tags": ["user"],
+          "summary": "Change password",
+          "parameters": [
+            {
+              "description": "dto",
+              "name": "dto",
+              "in": "body",
+              "required": true,
+              "schema": {
+                "$ref": "#/definitions/dtos.UserSigninDto"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "schema": {
+                "$ref": "#/definitions/dtos.ApiResponse"
+              }
+            }
+          }
+        }
+      },
+      "/user/fetch": {
+        "get": {
+          "security": [{ "ApiKeyAuth": [] }],
+          "consumes": ["application/json"],
+          "produces": ["application/json"],
+          "tags": ["user"],
+          "summary": "Fetch user",
+          "parameters": [
+            {
+              "type": "string",
+              "name": "last_item",
+              "in": "query"
+            },
+            {
+              "type": "integer",
+              "default": 10,
+              "name": "length",
+              "in": "query"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "schema": {
+                "$ref": "#/definitions/dtos.ApiResponse"
+              }
+            }
+          }
+        }
+      },
+      "/user/me": {
+        "get": {
+          "security": [{ "ApiKeyAuth": [] }],
+          "consumes": ["application/json"],
+          "produces": ["application/json"],
+          "tags": ["user"],
+          "summary": "Get user info",
+          "responses": {
+            "200": {
+              "description": "OK",
+              "schema": {
+                "$ref": "#/definitions/dtos.ApiResponse"
+              }
+            }
+          }
+        }
+      }
+    },
+    "definitions": {
+      "dtos.ApiResponse": {
+        "type": "object",
+        "properties": {
+          "data": {},
+          "message": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        }
+      },
+      "dtos.UserLoginDto": {
+        "type": "object",
+        "properties": {
+          "login_form": {
+            "type": "string",
+            "format": "base64"
+          }
+        }
+      },
+      "dtos.UserSigninDto": {
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          }
+        }
+      },
+      "dtos.AddUserDto": {
+        "type": "object",
+        "required": [
+          "fullname",
+          "no_telp",
+          "password",
+          "role",
+          "username"
+        ],
+        "properties": {
+          "fullname": {
+            "type": "string"
+          },
+          "no_telp": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8
+          },
+          "role": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string",
+            "minLength": 2
+          }
+        }
+      },
+      "dtos.RefreshTokenDto": {
+        "type": "object",
+        "properties": {
+          "refresh_token": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "securityDefinitions": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "name": "Authorization",
+        "in": "header"
+      }
+    }
+  }
+  

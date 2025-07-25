@@ -1,0 +1,21 @@
+# Config for Air (hot reload)
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  cmd = "go run cmd/devapi/main.go"
+  bin = ""
+  include_ext = ["go", "tpl", "tmpl", "html"]
+  exclude_dir = ["vendor", "node_modules"]
+  exclude_file = []
+  follow_symlink = true
+  delay = 1000 # ms
+
+[log]
+  time = true
+
+[color]
+  main = "yellow"
+  watcher = "cyan"
+  build = "green"
+  runner = "magenta"

@@ -1,0 +1,15 @@
+info:
+  contact: {}
+paths:
+  /ping:
+    get:
+      description: Untuk test server jalan atau tidak
+      responses:
+        "200":
+          description: pong
+          schema:
+            type: string
+      summary: Ping Test
+      tags:
+      - Health
+swagger: "2.0"
