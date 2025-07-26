@@ -1,8 +1,8 @@
 {
     "swagger": "2.0",
     "info": {
-      "title": "API Developer (BE)",
-      "description": "This is an API for DevAPI",
+      "title": "Backe End Developer ",
+      "description": "This is an API for DevAPI (GO+PostgreSQL)",
       "contact": {
         "name": "Nizar Developer",
         "url": "https://nizar.id/",
@@ -99,6 +99,23 @@
           }
         }
       },
+      "/user/me": {
+        "get": {
+          "security": [{ "ApiKeyAuth": [] }],
+          "consumes": ["application/json"],
+          "produces": ["application/json"],
+          "tags": ["user"],
+          "summary": "Get user info",
+          "responses": {
+            "200": {
+              "description": "OK",
+              "schema": {
+                "$ref": "#/definitions/dtos.ApiResponse"
+              }
+            }
+          }
+        }
+      },
       "/user/{id}": {
         "delete": {
           "security": [{ "ApiKeyAuth": [] }],
@@ -183,24 +200,8 @@
             }
           }
         }
-      },
-      "/user/me": {
-        "get": {
-          "security": [{ "ApiKeyAuth": [] }],
-          "consumes": ["application/json"],
-          "produces": ["application/json"],
-          "tags": ["user"],
-          "summary": "Get user info",
-          "responses": {
-            "200": {
-              "description": "OK",
-              "schema": {
-                "$ref": "#/definitions/dtos.ApiResponse"
-              }
-            }
-          }
-        }
       }
+     
     },
     "definitions": {
       "dtos.ApiResponse": {

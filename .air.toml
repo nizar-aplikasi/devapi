@@ -3,7 +3,7 @@ root = "."
 tmp_dir = "tmp"
 
 [build]
-  cmd = "go run cmd/devapi/main.go"
+  cmd = "go run main.go"
   bin = ""
   include_ext = ["go", "tpl", "tmpl", "html"]
   exclude_dir = ["vendor", "node_modules"]

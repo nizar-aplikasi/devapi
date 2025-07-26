@@ -1,4 +1,4 @@
-// File: cmd/devapi/main.go
+// File: main.go
 package main
 
 import (
