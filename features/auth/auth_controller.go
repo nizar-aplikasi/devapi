@@ -1,9 +1,10 @@
+// File: features/auth/auth_controller.go
 package auth
 
 import (
 	"devapi/features/auth/dto"
 	"encoding/base64"
-	"errors"	
+	"errors"
 	"net/http"
 	"strings"
 	"time"
@@ -19,7 +20,33 @@ func NewAuthController(authService Service) *AuthController {
 	return &AuthController{authService: authService}
 }
 
-// SignIn handles POST /auth/signin
+// === Structs for consistent response ===
+
+type TokenResponseData struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	TokenType    string `json:"token_type"`
+	ExpiresIn    int    `json:"expires_in"`
+}
+
+type AuthSuccessResponse struct {
+	Success bool              `json:"Success"`
+	Message string            `json:"Message"`
+	Data    TokenResponseData `json:"Data"`
+}
+
+type ErrorResponseData struct {
+	Error string `json:"error"`
+}
+
+type AuthErrorResponse struct {
+	Success bool              `json:"Success"`
+	Message string            `json:"Message"`
+	Data    ErrorResponseData `json:"Data"`
+}
+
+// === SignIn Handler ===
+
 func (c *AuthController) SignIn(ctx *gin.Context) {
 	var req dto.LoginFormRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -40,25 +67,53 @@ func (c *AuthController) SignIn(ctx *gin.Context) {
 	}
 
 	expiresIn := int(time.Until(tokenData.ExpiresAt).Seconds())
-	ctx.JSON(http.StatusOK, gin.H{
-		"Message": "Operation success",
-		"Success": true,
-		"Data": gin.H{
-			"access_token":  tokenData.AccessToken,
-			"refresh_token": tokenData.RefreshToken,
-			"token_type":    "Bearer",
-			"expires_in":    expiresIn,
+	ctx.JSON(http.StatusOK, AuthSuccessResponse{
+		Success: true,
+		Message: "Operation success",
+		Data: TokenResponseData{
+			AccessToken:  tokenData.AccessToken,
+			RefreshToken: tokenData.RefreshToken,
+			TokenType:    "Bearer",
+			ExpiresIn:    expiresIn,
 		},
 	})
 }
 
-// credentials struct for internal usage
+// === RefreshToken Handler ===
+
+func (c *AuthController) RefreshToken(ctx *gin.Context) {
+	var req dto.RefreshTokenRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		sendError(ctx, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+
+	tokenData, err := c.authService.RefreshToken(req.RefreshToken)
+	if err != nil {
+		sendError(ctx, http.StatusUnauthorized, "Token refresh failed", err)
+		return
+	}
+
+	expiresIn := int(time.Until(tokenData.ExpiresAt).Seconds())
+	ctx.JSON(http.StatusOK, AuthSuccessResponse{
+		Success: true,
+		Message: "Token refreshed successfully",
+		Data: TokenResponseData{
+			AccessToken:  tokenData.AccessToken,
+			RefreshToken: tokenData.RefreshToken,
+			TokenType:    "Bearer",
+			ExpiresIn:    expiresIn,
+		},
+	})
+}
+
+// === Utility Functions ===
+
 type credentials struct {
 	Username string
 	Password string
 }
 
-// decodeLoginForm decodes a base64 encoded login string to extract username and password
 func decodeLoginForm(encoded string) (*credentials, error) {
 	decoded, err := base64.StdEncoding.DecodeString(encoded)
 	if err != nil {
@@ -76,13 +131,12 @@ func decodeLoginForm(encoded string) (*credentials, error) {
 	}, nil
 }
 
-// sendError standardizes error response
 func sendError(ctx *gin.Context, statusCode int, message string, err error) {
-	ctx.JSON(statusCode, gin.H{
-		"Success": false,
-		"Message": message,
-		"Data": gin.H{
-			"error": err.Error(),
+	ctx.JSON(statusCode, AuthErrorResponse{
+		Success: false,
+		Message: message,
+		Data: ErrorResponseData{
+			Error: err.Error(),
 		},
 	})
 }

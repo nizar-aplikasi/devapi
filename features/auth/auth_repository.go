@@ -1,3 +1,4 @@
+// File: features/auth/auth_repository.go
 package auth
 
 import (
@@ -17,7 +18,6 @@ func NewRepository() Repository {
 	return &repository{}
 }
 
-// GetUserByUsername fetches a user by their username from the users table
 func (r *repository) GetUserByUsername(username string) (*models.User, error) {
 	var user models.User
 

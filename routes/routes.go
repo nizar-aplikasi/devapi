@@ -16,5 +16,6 @@ func RegisterRoutes(r *gin.Engine) {
 	auth := r.Group("/api/v1/auth")
 	{
 		auth.POST("/signin", authController.SignIn)
+		auth.POST("/refresh", authController.RefreshToken)
 	}
 }
