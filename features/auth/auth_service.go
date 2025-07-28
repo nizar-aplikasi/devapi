@@ -1,44 +1,52 @@
-// src: features/auth/auth_service.go
+// features/auth/auth_service.go
 package auth
 
 import (
-	"devapi/config"
-	"devapi/models"
+	"devapi/utils"
 	"devapi/utils/jwtutil"
-	"errors"
+	"fmt"
+	"os"
 	"time"
 )
 
-type AuthService struct {}
-
-func NewAuthService() *AuthService {
-	return &AuthService{}
+type Service interface {
+	Authenticate(username, password string) (*TokenData, error)
 }
 
-func (s *AuthService) AuthenticateUser(username, password string) (string, string, time.Time, error) {
-	// Your authentication logic here
-	var user models.User
-	err := config.DB.QueryRow("SELECT username, password FROM users WHERE username = $1", username).Scan(&user.Username, &user.Password)
+type AuthService struct {
+	repo Repository
+}
+
+func NewAuthService(repo Repository) Service {
+	return &AuthService{repo: repo}
+}
+
+type TokenData struct {
+	AccessToken  string
+	RefreshToken string
+	ExpiresAt    time.Time
+}
+
+func (s *AuthService) Authenticate(username, password string) (*TokenData, error) {
+	user, err := s.repo.GetUserByUsername(username)
 	if err != nil {
-		return "", "", time.Time{}, errors.New("invalid username or password")
+		return nil, fmt.Errorf("user %s not found", username)
 	}
 
-	// Assume you have password validation logic (e.g., bcrypt)
-	if user.Password != password {
-		return "", "", time.Time{}, errors.New("invalid username or password")
+	ok, err := utils.VerifyPassword(password, user.Password)
+	if err != nil || !ok {
+		if os.Getenv("APP_ENV") == "development" {
+			return nil, fmt.Errorf("invalid password for user=%s", username)
+		}
+		return nil, fmt.Errorf("invalid username or password")
 	}
 
-	// Generate JWT tokens
-	accessToken, err := jwtutil.GenerateAccessToken(username, []string{"user"})
+	token, err := jwtutil.GenerateAccessToken(user.Username, []string{user.Role})
 	if err != nil {
-		return "", "", time.Time{}, err
+		return nil, err
 	}
 
-	// Generate a refresh token
-	refreshToken := jwtutil.GenerateRefreshToken()
-
-	// Access token expiration (e.g., 1 hour from now)
-	expire := time.Now().Add(time.Hour)
-
-	return accessToken, refreshToken, expire, nil
+	refresh := jwtutil.GenerateRefreshToken()
+	expiry := time.Now().Add(time.Hour)
+	return &TokenData{AccessToken: token, RefreshToken: refresh, ExpiresAt: expiry}, nil
 }

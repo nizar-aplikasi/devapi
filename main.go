@@ -1,4 +1,3 @@
-// File: main.go
 package main
 
 import (
@@ -8,60 +7,104 @@ import (
 	"log"
 	"os/exec"
 	"runtime"
+
+	"github.com/joho/godotenv"
+)
+
+const (
+	swaggerURL = "http://localhost:5050/swagger/index.html"
+	appName    = "DevAPI"
 )
 
 func main() {
-	const swaggerURL = "http://localhost:5050/swagger/index.html"
-
-	// Setup Database connection
-	if err := setupDatabase(); err != nil {
-		log.Fatalf("❌ Error setting up database: %v", err)
+	// Initialize application
+	if err := initializeApp(); err != nil {
+		log.Fatalf("❌ Failed to initialize application: %v", err)
 	}
 
-	// Inform the user about the server
-	fmt.Printf("🚀 API server running at %s\n", swaggerURL)
-
-	// Open the Swagger UI in the browser (if possible)
-	if err := openBrowser(swaggerURL); err != nil {
-		log.Printf("⚠️ Failed to open browser: %v", err)
-	}
-
-	// Start the server
+	// Start server
+	log.Printf("🚀 %s server running at %s\n", appName, swaggerURL)
 	server.Run()
 }
 
-// setupDatabase handles the database initialization from config
-func setupDatabase() error {
-	// Initialize database connection from config
-	// Memuat konfigurasi dari file config
-	config.LoadConfig()
+func initializeApp() error {
+	// Load environment variables
+	if err := loadEnv(); err != nil {
+		return fmt.Errorf("environment loading failed: %w", err)
+	}
 
-	// Setup koneksi database
-	if err := config.InitDB(); err != nil {
-		return fmt.Errorf("failed to initialize database: %v", err)
+	// Setup database
+	if err := setupDatabase(); err != nil {
+		return fmt.Errorf("database setup failed: %w", err)
+	}
+
+	// Launch browser
+	if err := launchBrowser(swaggerURL); err != nil {
+		log.Printf("⚠️ Browser launch warning: %v", err)
 	}
 
 	return nil
 }
 
-// openBrowser tries to open the Swagger UI in Google Chrome based on the OS.
-// Returns error if it fails to open the browser
-func openBrowser(url string) error {
-	var cmd *exec.Cmd
-
-	switch runtime.GOOS {
-	case "windows":
-		cmd = exec.Command("cmd", "/c", "start", "chrome", url)
-	case "darwin":
-		cmd = exec.Command("open", "-a", "Google Chrome", url)
-	case "linux":
-		cmd = exec.Command("google-chrome", url)
-	default:
-		return fmt.Errorf("unsupported OS: unable to open the browser automatically")
-	}
-
-	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("failed to open browser: %v", err)
+func loadEnv() error {
+	if err := godotenv.Load(); err != nil {
+		log.Printf("⚠️ .env file not found, using system environment variables")
+		// Continue without .env file as system env vars might be set
 	}
 	return nil
+}
+
+func setupDatabase() error {
+	config.LoadConfig()
+	if err := config.InitDB(); err != nil {
+		return fmt.Errorf("database initialization failed: %w", err)
+	}
+	return nil
+}
+
+func launchBrowser(url string) error {
+	var browsers = []struct {
+		os      string
+		commands [][]string
+	}{
+		{
+			"windows",
+			[][]string{
+				{"cmd", "/c", "start", "msedge", url},  // Microsoft Edge
+				{"cmd", "/c", "start", "chrome", url},   // Google Chrome
+				{"cmd", "/c", "start", url},            // Default browser
+			},
+		},
+		{
+			"darwin",
+			[][]string{
+				{"open", "-a", "Microsoft Edge", url},
+				{"open", "-a", "Google Chrome", url},
+				{"open", url},
+			},
+		},
+		{
+			"linux",
+			[][]string{
+				{"microsoft-edge", url},
+				{"microsoft-edge-stable", url},
+				{"google-chrome", url},
+				{"xdg-open", url},
+			},
+		},
+	}
+
+	for _, browser := range browsers {
+		if runtime.GOOS == browser.os {
+			for _, cmdArgs := range browser.commands {
+				cmd := exec.Command(cmdArgs[0], cmdArgs[1:]...)
+				if err := cmd.Start(); err == nil {
+					return nil
+				}
+			}
+			return fmt.Errorf("no supported browser found on %s", runtime.GOOS)
+		}
+	}
+
+	return fmt.Errorf("unsupported operating system: %s", runtime.GOOS)
 }

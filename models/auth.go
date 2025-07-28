@@ -2,7 +2,6 @@
 package models
 
 // LoginRequest mendefinisikan struktur data untuk login
-// type LoginRequest struct {
-// 	Username string `json:"username" binding:"required"`
-// 	Password string `json:"password" binding:"required"`
-// }
+type LoginRequest struct {
+	LoginForm string `json:"login_form" binding:"required"`
+}

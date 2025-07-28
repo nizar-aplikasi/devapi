@@ -1,19 +1,20 @@
+// routes/routes.go
 package routes
 
 import (
-	"devapi/features/auth"
+	authcontroller "devapi/controllers/auth"
+	authfeature "devapi/features/auth"
 
 	"github.com/gin-gonic/gin"
 )
 
 func RegisterRoutes(r *gin.Engine) {
-	// Initialize AuthController
-	authService := auth.NewAuthService()
-	authController := auth.NewAuthController(authService)
+	authRepo := authfeature.NewRepository()
+	authService := authfeature.NewAuthService(authRepo)
+	authController := authcontroller.NewAuthController(authService)
 
-	// Register the auth route
-	authGroup := r.Group("/api/v1/auth")
+	auth := r.Group("/api/v1/auth")
 	{
-		authGroup.POST("/signin", authController.SignIn)
+		auth.POST("/signin", authController.SignIn)
 	}
 }
