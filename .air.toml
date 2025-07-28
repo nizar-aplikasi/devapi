@@ -3,19 +3,31 @@ root = "."
 tmp_dir = "tmp"
 
 [build]
-  cmd = "go run main.go"
-  bin = ""
-  include_ext = ["go", "tpl", "tmpl", "html"]
-  exclude_dir = ["vendor", "node_modules"]
-  exclude_file = []
-  follow_symlink = true
-  delay = 1000 # ms
+  cmd = "go build -o ./tmp/devapi.exe ."
+bin = "./tmp/devapi.exe"                # Binary yang akan dijalankan
+  full_bin = ".\\tmp\\devapi.exe"        # Full path binary 
+  include_ext = ["go", "env", "yaml", "yml"]    # Extensi file yang di-monitor
+  exclude_dir = [
+    "vendor",
+    "tmp",
+    "docs",
+    "static",
+    "node_modules",
+    ".git"
+  ]
+  delay = 800                             # Lebih responsif
+  stop_on_error = true                    # Berhenti jika build error
+  kill_signal = "CTRL+C"a
+  kill_delay = "500ms"                    # Waktu tunggu sebelum kill process lama
 
 [log]
   time = true
+  main_only = false                       # Tampilkan semua log
+  prefix = "[DEVAPI]"                     # Identifikasi log project
 
 [color]
   main = "yellow"
   watcher = "cyan"
   build = "green"
   runner = "magenta"
+  app = "blue"
