@@ -1,24 +1,30 @@
-// src: features/user/user_service.go
+// File: features/user/user_service.go
 package user
 
 import (
+	authfeature "devapi/features/auth"
+
 	"devapi/models"
-	"devapi/features/auth"
 	"errors"
+
+	"github.com/google/uuid"
 )
 
-// UserService menangani logika terkait pengguna
-type UserService struct {
-	repo UserRepository
-	auth auth.AuthService
+type Service interface {
+	CreateUser(user models.User) (*models.User, error)
+	FindUserByUsername(username string) (*models.User, error)
+	FindUserByID(id uuid.UUID) (*models.User, error)
 }
 
-// NewUserService membuat instansi baru dari UserService
-func NewUserService(repo UserRepository, authService auth.AuthService) *UserService {
+type UserService struct {
+	repo UserRepository
+	auth authfeature.Service
+}
+
+func NewUserService(repo UserRepository, authService authfeature.Service) Service {
 	return &UserService{repo: repo, auth: authService}
 }
 
-// CreateUser membuat pengguna baru
 func (s *UserService) CreateUser(user models.User) (*models.User, error) {
 	if user.Username == "" || user.Password == "" {
 		return nil, errors.New("username and password are required")
@@ -29,10 +35,13 @@ func (s *UserService) CreateUser(user models.User) (*models.User, error) {
 		return nil, errors.New("username already taken")
 	}
 
-	// Simulasi penyimpanan ke DB
-	createdUser, err := s.repo.CreateUser(user)
-	if err != nil {
-		return nil, err
-	}
-	return createdUser, nil
+	return s.repo.CreateUser(user)
+}
+
+func (s *UserService) FindUserByUsername(username string) (*models.User, error) {
+	return s.repo.FindUserByUsername(username)
+}
+
+func (s *UserService) FindUserByID(id uuid.UUID) (*models.User, error) {
+	return s.repo.FindUserByID(id)
 }

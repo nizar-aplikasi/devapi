@@ -1,45 +1,70 @@
-// src: features/user/user_repository.go
+// File: features/user/user_repository.go
 package user
 
 import (
+	"database/sql"
+	"devapi/config"
 	"devapi/models"
-	"devapi/config"	
 	"errors"
+
+	"github.com/google/uuid"
 )
 
-// UserRepository interface untuk interaksi database pada pengguna
+// UserRepository menangani operasi database untuk pengguna
 type UserRepository interface {
-	CreateUser(user models.User) (*models.User, error)
 	FindUserByUsername(username string) (*models.User, error)
+	FindUserByID(id uuid.UUID) (*models.User, error)
+	CreateUser(user models.User) (*models.User, error)
 }
 
-// UserRepositoryImpl implementasi UserRepository untuk PostgreSQL
-type UserRepositoryImpl struct{}
+type userRepository struct {
+	db *sql.DB
+}
 
-// NewUserRepositoryImpl membuat instance baru UserRepositoryImpl
+// NewUserRepository membuat instansi baru dari userRepository
 func NewUserRepositoryImpl() UserRepository {
-	return &UserRepositoryImpl{}
-}
-
-// CreateUser menyimpan user baru ke database
-func (r *UserRepositoryImpl) CreateUser(user models.User) (*models.User, error) {
-	var createdUser models.User
-	err := config.DB.QueryRow("INSERT INTO users(username, password) VALUES($1, $2) RETURNING id, username", user.Username, user.Password).
-		Scan(&createdUser.ID, &createdUser.Username)
-	if err != nil {
-		return nil, err
+	return &userRepository{
+		db: config.DB,
 	}
-	return &createdUser, nil
 }
 
 // FindUserByUsername mencari user berdasarkan username
-func (r *UserRepositoryImpl) FindUserByUsername(username string) (*models.User, error) {
+func (r *userRepository) FindUserByUsername(username string) (*models.User, error) {
+	query := `SELECT id, username, password, fullname, orgname, role FROM users WHERE username = $1 LIMIT 1`
+	row := r.db.QueryRow(query, username)
+
 	var user models.User
-	err := config.DB.QueryRow("SELECT id, username, password FROM users WHERE username = $1", username).Scan(&user.ID, &user.Username, &user.Password)
+	err := row.Scan(&user.ID, &user.Username, &user.Password, &user.Fullname, &user.OrgName, &user.Role)
 	if err != nil {
-		if err.Error() == "sql: no rows in result set" {
-			return nil, errors.New("user not found")
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
 		}
+		return nil, err
+	}
+	return &user, nil
+}
+
+// FindUserByID mencari user berdasarkan UUID
+func (r *userRepository) FindUserByID(id uuid.UUID) (*models.User, error) {
+	query := `SELECT id, username, password, fullname, orgname, role FROM users WHERE id = $1 LIMIT 1`
+	row := r.db.QueryRow(query, id)
+
+	var user models.User
+	err := row.Scan(&user.ID, &user.Username, &user.Password, &user.Fullname, &user.OrgName, &user.Role)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &user, nil
+}
+
+// CreateUser menyimpan user baru ke database
+func (r *userRepository) CreateUser(user models.User) (*models.User, error) {
+	query := `INSERT INTO users (id, username, password, fullname, orgname, role) VALUES ($1, $2, $3, $4, $5, $6)`
+	_, err := r.db.Exec(query, user.ID, user.Username, user.Password, user.Fullname, user.OrgName, user.Role)
+	if err != nil {
 		return nil, err
 	}
 	return &user, nil

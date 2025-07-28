@@ -1,50 +1,92 @@
-// src: features/user/user_controller.go
 package user
 
 import (
 	"net/http"
-	"devapi/models"
+
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v4"
 )
 
-// Define the LoginRequest struct for binding the incoming JSON request
-type RegisterRequest struct {
-	Username string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
+type Controller struct {
+	service Service
 }
 
-type UserController struct {
-	userService *UserService
+func NewUserController(service Service) *Controller {
+	return &Controller{service: service}
 }
 
-// NewUserController membuat instance baru UserController
-func NewUserController(userService *UserService) *UserController {
-	return &UserController{userService: userService}
+// === Structs for consistent response ===
+
+type UserResponseData struct {
+	Username string `json:"username"`
+	Fullname string `json:"fullname"`
+	OrgName  string `json:"orgname"`
+	Role     string `json:"role"`
 }
 
-// Register handler untuk registrasi pengguna
-func (u *UserController) Register(c *gin.Context) {
-	var registerRequest RegisterRequest
-	if err := c.ShouldBindJSON(&registerRequest); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
+type UserSuccessResponse struct {
+	Success bool             `json:"Success"`
+	Message string           `json:"Message"`
+	Data    UserResponseData `json:"Data"`
+}
+
+type ErrorResponseData struct {
+	Error string `json:"error"`
+}
+
+type UserErrorResponse struct {
+	Success bool              `json:"Success"`
+	Message string            `json:"Message"`
+	Data    ErrorResponseData `json:"Data"`
+}
+
+// === Me Handler ===
+
+func (c *Controller) Me(ctx *gin.Context) {
+	claims, exists := ctx.Get("user_claims")
+	if !exists {
+		sendError(ctx, http.StatusUnauthorized, "Unauthorized", "Missing token claims")
 		return
 	}
 
-	// Buat user baru melalui service
-	user := models.User{
-		Username: registerRequest.Username,
-		Password: registerRequest.Password,
+	mapClaims, ok := claims.(jwt.MapClaims)
+	if !ok {
+		sendError(ctx, http.StatusUnauthorized, "Unauthorized", "Invalid token claims")
+		return
 	}
 
-	createdUser, err := u.userService.CreateUser(user)
+	username, ok := mapClaims["username"].(string)
+	if !ok || username == "" {
+		sendError(ctx, http.StatusUnauthorized, "Unauthorized", "Username not found in token")
+		return
+	}
+
+	user, err := c.service.FindUserByUsername(username)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		sendError(ctx, http.StatusNotFound, "User not found", err.Error())
 		return
 	}
 
-	// Kirim respons sukses
-	c.JSON(http.StatusCreated, gin.H{
-		"id":       createdUser.ID,
-		"username": createdUser.Username,
+	ctx.JSON(http.StatusOK, UserSuccessResponse{
+		Success: true,
+		Message: "User retrieved successfully",
+		Data: UserResponseData{
+			Username: user.Username,
+			Fullname: user.Fullname,
+			OrgName:  user.OrgName,
+			Role:     user.Role,
+		},
+	})
+}
+
+// === Utility Function ===
+
+func sendError(ctx *gin.Context, statusCode int, message string, errMsg string) {
+	ctx.JSON(statusCode, UserErrorResponse{
+		Success: false,
+		Message: message,
+		Data: ErrorResponseData{
+			Error: errMsg,
+		},
 	})
 }
