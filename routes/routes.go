@@ -2,7 +2,7 @@
 package routes
 
 import (
-	authcontroller "devapi/controllers/auth"
+	
 	authfeature "devapi/features/auth"
 
 	"github.com/gin-gonic/gin"
@@ -11,7 +11,7 @@ import (
 func RegisterRoutes(r *gin.Engine) {
 	authRepo := authfeature.NewRepository()
 	authService := authfeature.NewAuthService(authRepo)
-	authController := authcontroller.NewAuthController(authService)
+	authController := authfeature.NewAuthController(authService)
 
 	auth := r.Group("/api/v1/auth")
 	{

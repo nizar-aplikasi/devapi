@@ -1,11 +1,9 @@
-// controllers/auth/auth_controller.go
-package authcontroller
+package auth
 
 import (
-	"devapi/features/auth"
 	"devapi/features/auth/dto"
 	"encoding/base64"
-	"fmt"
+	"errors"	
 	"net/http"
 	"strings"
 	"time"
@@ -14,39 +12,36 @@ import (
 )
 
 type AuthController struct {
-	authService auth.Service
+	authService Service
 }
 
-func NewAuthController(authService auth.Service) *AuthController {
+func NewAuthController(authService Service) *AuthController {
 	return &AuthController{authService: authService}
 }
 
+// SignIn handles POST /auth/signin
 func (c *AuthController) SignIn(ctx *gin.Context) {
 	var req dto.LoginFormRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
+		sendError(ctx, http.StatusBadRequest, "Invalid request format", err)
 		return
 	}
 
 	credentials, err := decodeLoginForm(req.LoginForm)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		sendError(ctx, http.StatusBadRequest, "Invalid login format", err)
 		return
 	}
 
 	tokenData, err := c.authService.Authenticate(credentials.Username, credentials.Password)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{
-			"Success": false,
-			"Message": "operation failed",
-			"Data": gin.H{"error": err.Error()},
-		})
+		sendError(ctx, http.StatusUnauthorized, "Authentication failed", err)
 		return
 	}
 
 	expiresIn := int(time.Until(tokenData.ExpiresAt).Seconds())
 	ctx.JSON(http.StatusOK, gin.H{
-		"Message": "operation success",
+		"Message": "Operation success",
 		"Success": true,
 		"Data": gin.H{
 			"access_token":  tokenData.AccessToken,
@@ -57,19 +52,37 @@ func (c *AuthController) SignIn(ctx *gin.Context) {
 	})
 }
 
+// credentials struct for internal usage
 type credentials struct {
 	Username string
 	Password string
 }
 
+// decodeLoginForm decodes a base64 encoded login string to extract username and password
 func decodeLoginForm(encoded string) (*credentials, error) {
 	decoded, err := base64.StdEncoding.DecodeString(encoded)
 	if err != nil {
 		return nil, err
 	}
-	parts := strings.Split(string(decoded), ":")
+
+	parts := strings.SplitN(string(decoded), ":", 2)
 	if len(parts) != 2 {
-		return nil, fmt.Errorf("Invalid login format")
+		return nil, errors.New("expected format: username:password")
 	}
-	return &credentials{Username: parts[0], Password: parts[1]}, nil
+
+	return &credentials{
+		Username: strings.TrimSpace(parts[0]),
+		Password: strings.TrimSpace(parts[1]),
+	}, nil
+}
+
+// sendError standardizes error response
+func sendError(ctx *gin.Context, statusCode int, message string, err error) {
+	ctx.JSON(statusCode, gin.H{
+		"Success": false,
+		"Message": message,
+		"Data": gin.H{
+			"error": err.Error(),
+		},
+	})
 }
