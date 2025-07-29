@@ -71,7 +71,7 @@
         }
       }
     },
-    "/user": {
+    "/user/create": {
       "post": {
         "security": [{ "ApiKeyAuth": [] }],
         "consumes": ["application/json"],
@@ -91,7 +91,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Successful create user",
             "schema": {
               "$ref": "#/definitions/dtos.ApiResponse"
             }

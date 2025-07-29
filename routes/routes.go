@@ -24,6 +24,7 @@ func RegisterRoutes(r *gin.Engine) {
 	// AUTH routes (no auth required)
 	auth := r.Group("/api/v1/auth")
 	{
+		// POST
 		auth.POST("/signin", authController.SignIn)
 		auth.POST("/refresh", authController.RefreshToken)
 	}
@@ -32,8 +33,10 @@ func RegisterRoutes(r *gin.Engine) {
 	user := r.Group("/api/v1/user")
 	user.Use(middlewares.JWTAuthMiddleware())
 	{
-		user.GET("/me", userController.Me)
-		user.POST("/", userController.Create)
+		// POST
+		user.POST("/create", userController.Create)
+		// GET
+		user.GET("/me", userController.Me)		
 		user.GET("/list", userController.List)
 	}
 }

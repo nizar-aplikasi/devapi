@@ -17,13 +17,16 @@ const (
 )
 
 func main() {
+	// Starting
+	log.Println("🚀 Starting DevAPI...")
+
 	// Initialize application
 	if err := initializeApp(); err != nil {
-		log.Fatalf("❌ Failed to initialize application: %v", err)
+		log.Printf("❌ Failed to initialize application: %v", err)
 	}
 
 	// Start server
-	log.Printf("🚀 %s server running at %s\n", appName, swaggerURL)
+	log.Printf("⚡ %s server running at %s\n", appName, swaggerURL)
 	server.Run()
 }
 

@@ -26,6 +26,7 @@ func NewUserService(repo UserRepository, authService authfeature.Service) Servic
 	return &UserService{repo: repo, auth: authService}
 }
 
+// CreateUser : creates a new user
 func (s *UserService) CreateUser(user models.User) (*models.User, error) {
 	if user.Username == "" || user.Password == "" {
 		return nil, errors.New("username and password are required")
@@ -35,10 +36,13 @@ func (s *UserService) CreateUser(user models.User) (*models.User, error) {
 	if existingUser != nil {
 		return nil, errors.New("username already taken")
 	}
+	// ✅ Generate UUID baru
+	user.ID = uuid.New()
 
 	return s.repo.CreateUser(user)
 }
 
+// FindUserByUsername : finds a user by username
 func (s *UserService) FindUserByUsername(username string) (*models.User, error) {
 	return s.repo.FindUserByUsername(username)
 }

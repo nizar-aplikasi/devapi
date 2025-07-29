@@ -20,13 +20,13 @@ func InitDB() error {
 	var err error
 	DB, err = sql.Open("postgres", AppConfig.DatabaseURL)
 	if err != nil {
-		log.Fatalf("❌ Failed to connect to database: %v", err)
+		log.Printf("❌ Failed to connect to database: %v", err)
 		return err
 	}
 
 	// Mengecek koneksi dengan melakukan ping ke database
 	if err := DB.Ping(); err != nil {
-		log.Fatalf("❌ Database ping failed: %v", err)
+		log.Printf("❌ Database ping failed: %v", err)
 		return err
 	}
 
