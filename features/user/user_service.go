@@ -14,6 +14,7 @@ type Service interface {
 	CreateUser(user models.User) (*models.User, error)
 	FindUserByUsername(username string) (*models.User, error)
 	FindUserByID(id uuid.UUID) (*models.User, error)
+	FindAllUsers() ([]models.User, error)
 }
 
 type UserService struct {
@@ -44,4 +45,8 @@ func (s *UserService) FindUserByUsername(username string) (*models.User, error) 
 
 func (s *UserService) FindUserByID(id uuid.UUID) (*models.User, error) {
 	return s.repo.FindUserByID(id)
+}
+
+func (s *UserService) FindAllUsers() ([]models.User, error) {
+	return s.repo.FindAllUsers()
 }

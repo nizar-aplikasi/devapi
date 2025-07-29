@@ -33,5 +33,7 @@ func RegisterRoutes(r *gin.Engine) {
 	user.Use(middlewares.JWTAuthMiddleware())
 	{
 		user.GET("/me", userController.Me)
+		user.POST("/", userController.Create)
+		user.GET("/list", userController.List)
 	}
 }
