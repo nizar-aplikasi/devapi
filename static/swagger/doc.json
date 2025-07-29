@@ -34,7 +34,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Successful signin",
             "schema": {
               "$ref": "#/definitions/dtos.ApiResponse"
             }
@@ -63,7 +63,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Successful refresh token",
             "schema": {
               "$ref": "#/definitions/dtos.ApiResponse"
             }
@@ -108,7 +108,7 @@
         "summary": "Get user info",
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Successful user me",
             "schema": {
               "$ref": "#/definitions/dtos.ApiResponse"
             }
@@ -152,7 +152,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Successful user deactivate",
             "schema": {
               "$ref": "#/definitions/dtos.ApiResponse"
             }
@@ -181,7 +181,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Successful change password",
             "schema": {
               "$ref": "#/definitions/dtos.ApiResponse"
             }
@@ -211,7 +211,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Successful fetch users",
             "schema": {
               "$ref": "#/definitions/dtos.ApiResponse"
             }
