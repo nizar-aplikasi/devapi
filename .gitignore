@@ -14,5 +14,6 @@
 Thumbs.db
 
 # Env/Secrets
-.env
+.env.production
+.env.local
 *.env

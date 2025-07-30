@@ -1,10 +1,12 @@
 package config
 
 import (
+	"log"
 	"os"
+
+	"github.com/joho/godotenv"
 )
 
-// Struct untuk menyimpan konfigurasi aplikasi
 type Config struct {
 	AppPort     string
 	AppEnv      string
@@ -12,20 +14,29 @@ type Config struct {
 	DatabaseURL string
 }
 
-// Global instance untuk konfigurasi
 var AppConfig Config
 
-// LoadConfig membaca variabel lingkungan (environment variables) dan menginisialisasi konfigurasi aplikasi
 func LoadConfig() {
+	env := getEnv("APP_ENV", "development")
+	envFile := ".env.local"
+
+	if env == "production" {
+		log.Println("📦 Production mode: Using Railway env vars")
+	} else {
+		log.Printf("🧪 Development mode: Loading %s", envFile)
+		if err := godotenv.Load(envFile); err != nil {
+			log.Printf("⚠️ Failed to load %s: %v", envFile, err)
+		}
+	}
+
 	AppConfig = Config{
 		AppPort:     getEnv("PORT", "5050"),
-		AppEnv:      getEnv("APP_ENV", "development"),
+		AppEnv:      env,
 		SwaggerPath: getEnv("SWAGGER_PATH", "./static/swagger"),
 		DatabaseURL: getEnv("DATABASE_URL", "postgres://postgres:123456@localhost:5432/db_devapi?sslmode=disable"),
 	}
 }
 
-// getEnv mencoba mengambil nilai dari environment variable, jika tidak ada menggunakan nilai fallback
 func getEnv(key, fallback string) string {
 	if val := os.Getenv(key); val != "" {
 		return val
