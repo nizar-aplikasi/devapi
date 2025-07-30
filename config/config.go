@@ -18,7 +18,7 @@ var AppConfig Config
 // LoadConfig membaca variabel lingkungan (environment variables) dan menginisialisasi konfigurasi aplikasi
 func LoadConfig() {
 	AppConfig = Config{
-		AppPort:     getEnv("APP_PORT", ":5050"),
+		AppPort:     getEnv("PORT", "5050"),
 		AppEnv:      getEnv("APP_ENV", "development"),
 		SwaggerPath: getEnv("SWAGGER_PATH", "./static/swagger"),
 		DatabaseURL: getEnv("DATABASE_URL", "postgres://postgres:123456@localhost:5432/db_devapi?sslmode=disable"),
