@@ -21,11 +21,6 @@ func Run() {
 	// Serve Swagger static
 	r.Static("/swagger", "./static/swagger")
 
-	// ✅ Redirect "/" ke Swagger
-	r.GET("/", func(c *gin.Context) {
-		c.Redirect(302, "/swagger/index.html")
-	})
-
 	// Register all routes
 	routes.RegisterRoutes(r)
 
