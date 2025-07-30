@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "Backend Go API",
+    "title": "Back End Go API",
     "description": "This is an API for DevAPI (GO+PostgreSQL)",
     "contact": {
       "name": "Nizar Developer",
@@ -327,12 +327,18 @@
         }
       }
     }
-  },
+  },  
   "securityDefinitions": {
     "ApiKeyAuth": {
       "type": "apiKey",
+      "in": "header",
       "name": "Authorization",
-      "in": "header"
+      "description": "Enter your Bearer token in the format **Bearer &lt;token&gt;**"
     }
-  }
+  },
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ]
 }

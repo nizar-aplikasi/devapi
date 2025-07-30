@@ -5,15 +5,13 @@ import (
 	"devapi/internal/server"
 	"fmt"
 	"log"
-	"os/exec"
-	"runtime"
+	"os"
 
 	"github.com/joho/godotenv"
 )
 
 const (
-	swaggerURL = "http://localhost:5050/swagger/index.html"
-	appName    = "DevAPI"
+	appName = "DevAPI"
 )
 
 func main() {
@@ -26,7 +24,18 @@ func main() {
 	}
 
 	// Start server
+	// Get PORT for info (optional log)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "5050"
+	}
+
+	swaggerURL := fmt.Sprintf("http://localhost:%s/swagger/index.html", port)
+
+	// Informational log
 	log.Printf("⚡ %s server running at %s\n", appName, swaggerURL)
+
+	// Run server
 	server.Run()
 }
 
@@ -39,11 +48,6 @@ func initializeApp() error {
 	// Setup database
 	if err := setupDatabase(); err != nil {
 		return fmt.Errorf("database setup failed: %w", err)
-	}
-
-	// Launch browser
-	if err := launchBrowser(swaggerURL); err != nil {
-		log.Printf("⚠️ Browser launch warning: %v", err)
 	}
 
 	return nil
@@ -63,51 +67,4 @@ func setupDatabase() error {
 		return fmt.Errorf("database initialization failed: %w", err)
 	}
 	return nil
-}
-
-func launchBrowser(url string) error {
-	var browsers = []struct {
-		os      string
-		commands [][]string
-	}{
-		{
-			"windows",
-			[][]string{
-				{"cmd", "/c", "start", "msedge", url},  // Microsoft Edge
-				{"cmd", "/c", "start", "chrome", url},   // Google Chrome
-				{"cmd", "/c", "start", url},            // Default browser
-			},
-		},
-		{
-			"darwin",
-			[][]string{
-				{"open", "-a", "Microsoft Edge", url},
-				{"open", "-a", "Google Chrome", url},
-				{"open", url},
-			},
-		},
-		{
-			"linux",
-			[][]string{
-				{"microsoft-edge", url},
-				{"microsoft-edge-stable", url},
-				{"google-chrome", url},
-				{"xdg-open", url},
-			},
-		},
-	}
-
-	for _, browser := range browsers {
-		if runtime.GOOS == browser.os {
-			for _, cmdArgs := range browser.commands {
-				cmd := exec.Command(cmdArgs[0], cmdArgs[1:]...)
-				if err := cmd.Start(); err == nil {
-					return nil
-				}
-			}
-			return fmt.Errorf("no supported browser found on %s", runtime.GOOS)
-		}
-	}
-
-	return fmt.Errorf("unsupported operating system: %s", runtime.GOOS)
 }
