@@ -9,6 +9,14 @@ import (
 )
 
 func RegisterRoutes(r *gin.Engine) {
+	// ✅ Tambahkan ini agar Railway tidak error saat akses root domain
+	r.GET("/", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"message": "🚆 DevAPI is running on Railway!",
+			"docs":    "/swagger/index.html",
+		})
+	})
+
 	// Init repositories
 	authRepo := authfeature.NewRepository()
 	userRepo := userfeature.NewUserRepositoryImpl() // ✅ Sudah konsisten
@@ -36,7 +44,7 @@ func RegisterRoutes(r *gin.Engine) {
 		// POST
 		user.POST("/create", userController.Create)
 		// GET
-		user.GET("/me", userController.Me)		
+		user.GET("/me", userController.Me)
 		user.GET("/list", userController.List)
 	}
 }
